@@ -89,12 +89,56 @@
       color: var(--cursor-orange);
       font-weight: bold;
     }
+
+    /* IDE Frame: fixed viewport shell */
+    html, body { height: 100%; overflow: hidden; margin: 0; }
+
+    .ide-shell {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .ide-shell > *, .ide-shell .ide-sidebar, .ide-shell .ide-right-panel {
+      pointer-events: auto;
+    }
+
+    .ide-middle {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .ide-middle .ide-sidebar,
+    .ide-middle .ide-right-panel {
+      pointer-events: auto;
+    }
+
+    /* The transparent gap where content shows through */
+    .ide-content-gap {
+      flex: 1;
+      pointer-events: none;
+    }
+
+    /* Scrollable content layer */
+    .content-layer {
+      position: fixed;
+      z-index: 5;
+      overflow-y: auto;
+      overflow-x: hidden;
+      background: var(--editor-bg);
+    }
   </style>
 </head>
 <body>
-  <div class="min-h-screen flex flex-col">
+  <!-- LAYER 1: Fixed IDE Shell (z-10) -->
+  <div class="ide-shell">
     <!-- IDE Header / Menu Bar -->
-    <header class="h-9 flex items-center justify-between px-4 bg-[#1a1a17] border-b border-[#2d2d2a] text-[11px] text-[#8b8b82] z-50">
+    <header class="h-9 flex items-center justify-between px-4 bg-[#1a1a17] border-b border-[#2d2d2a] text-[11px] text-[#8b8b82]">
       <div class="flex items-center gap-4">
         <img src="https://vgbujcuwptvheqijyjbe.supabase.co/storage/v1/object/public/brand-assets/cursor.com/logo-1774920882752.svg" alt="Cursor" class="h-3 invert opacity-60">
         <div class="flex gap-3">
@@ -121,9 +165,10 @@
       </div>
     </header>
 
-    <div class="flex-1 flex overflow-hidden">
+    <!-- IDE Middle: sidebar + gap + right panel -->
+    <div class="ide-middle">
       <!-- Sidebar: File Explorer -->
-      <aside class="hidden md:flex flex-col w-64 bg-[#151512] border-r border-[#2d2d2a] flex-shrink-0">
+      <aside class="ide-sidebar hidden md:flex flex-col w-64 bg-[#151512] border-r border-[#2d2d2a] flex-shrink-0">
         <div class="p-3 text-[11px] font-bold uppercase tracking-widest text-[#8b8b82] flex justify-between items-center">
           <span>Explorer</span>
           <iconify-icon icon="lucide:more-horizontal"></iconify-icon>
@@ -171,37 +216,81 @@
         </div>
       </aside>
 
-      <!-- Editor View Area -->
-      <main class="flex-1 flex flex-col min-w-0 overflow-y-auto bg-[#0a0a0a]">
-        <!-- Tab Bar -->
-        <div class="h-10 flex bg-[#1a1a17] border-b border-[#2d2d2a] sticky top-0 z-40 overflow-x-auto">
-          <div class="active-tab flex items-center gap-2 px-4 h-full border-r border-[#2d2d2a] text-[13px] whitespace-nowrap">
-            <iconify-icon icon="lucide:file-terminal" class="text-orange-500"></iconify-icon>
-            README.sh
-            <iconify-icon icon="lucide:x" class="text-[10px] ml-2 opacity-0 group-hover:opacity-100"></iconify-icon>
-          </div>
-          <div class="flex items-center gap-2 px-4 h-full border-r border-[#2d2d2a] text-[13px] text-[#8b8b82] whitespace-nowrap">
-            <iconify-icon icon="lucide:file-code" class="text-blue-400"></iconify-icon>
-            about.json
-          </div>
-          <div class="flex items-center gap-2 px-4 h-full border-r border-[#2d2d2a] text-[13px] text-[#8b8b82] whitespace-nowrap">
-            <iconify-icon icon="lucide:file-json" class="text-yellow-400"></iconify-icon>
-            register.config
-          </div>
-        </div>
+      <!-- Transparent gap where content shows through -->
+      <div class="ide-content-gap"></div>
 
-        <!-- Breadcrumbs -->
-        <div class="h-7 flex items-center px-6 bg-[#0a0a0a] text-[11px] text-[#8b8b82] gap-2 border-b border-[#1a1a17]">
-          <iconify-icon icon="lucide:folder-open" class="text-xs"></iconify-icon>
-          <span>hackathon-id-2026</span>
-          <iconify-icon icon="lucide:chevron-right" class="text-[10px]"></iconify-icon>
-          <span>src</span>
-          <iconify-icon icon="lucide:chevron-right" class="text-[10px]"></iconify-icon>
-          <span class="text-white">README.sh</span>
+      <!-- Side Panel: Status Bar Style -->
+      <div class="ide-right-panel hidden xl:flex flex-col w-12 bg-[#1a1a17] border-l border-[#2d2d2a] items-center py-4 gap-6 text-[#8b8b82]">
+        <iconify-icon icon="lucide:search" class="text-xl hover:text-white cursor-pointer"></iconify-icon>
+        <iconify-icon icon="lucide:git-branch" class="text-xl hover:text-white cursor-pointer"></iconify-icon>
+        <iconify-icon icon="lucide:box" class="text-xl hover:text-white cursor-pointer"></iconify-icon>
+        <iconify-icon icon="lucide:flask-conical" class="text-xl hover:text-white cursor-pointer"></iconify-icon>
+        <div class="mt-auto flex flex-col gap-6">
+          <iconify-icon icon="lucide:user-circle" class="text-xl hover:text-white cursor-pointer"></iconify-icon>
+          <iconify-icon icon="lucide:settings" class="text-xl hover:text-white cursor-pointer"></iconify-icon>
         </div>
+      </div>
+    </div><!-- /ide-middle -->
 
-        <!-- Content Sections Container -->
-        <div class="p-6 md:p-12 space-y-32">
+    <!-- Status Bar (Footer) - fixed bottom -->
+    <footer class="h-6 bg-[#f54e00] flex items-center justify-between px-3 text-[10px] font-bold text-white">
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-1">
+          <iconify-icon icon="lucide:git-branch"></iconify-icon>
+          <span>main*</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <iconify-icon icon="lucide:refresh-cw" class="animate-spin"></iconify-icon>
+          <span>Syncing...</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <span>Ln 1, Col 1</span>
+        <span>UTF-8</span>
+        <div class="flex items-center gap-1">
+          <iconify-icon icon="lucide:check-circle"></iconify-icon>
+          <span>Prettier</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <iconify-icon icon="lucide:bell"></iconify-icon>
+        </div>
+      </div>
+    </footer>
+  </div><!-- /ide-shell -->
+
+  <!-- LAYER 2: Scrollable Content (z-5) -->
+  <div id="content-scroll" class="content-layer" style="top: 36px; bottom: 24px; left: 0; right: 0;">
+    <!-- Offset for sidebar on md+ and right panel on xl+ handled via padding -->
+    <div class="md:ml-64 xl:mr-12">
+      <!-- Tab Bar (part of content, scrolls away) -->
+      <div class="h-10 flex bg-[#1a1a17] border-b border-[#2d2d2a] sticky top-0 z-[8] overflow-x-auto">
+        <div class="active-tab flex items-center gap-2 px-4 h-full border-r border-[#2d2d2a] text-[13px] whitespace-nowrap">
+          <iconify-icon icon="lucide:file-terminal" class="text-orange-500"></iconify-icon>
+          README.sh
+          <iconify-icon icon="lucide:x" class="text-[10px] ml-2 opacity-0 group-hover:opacity-100"></iconify-icon>
+        </div>
+        <div class="flex items-center gap-2 px-4 h-full border-r border-[#2d2d2a] text-[13px] text-[#8b8b82] whitespace-nowrap">
+          <iconify-icon icon="lucide:file-code" class="text-blue-400"></iconify-icon>
+          about.json
+        </div>
+        <div class="flex items-center gap-2 px-4 h-full border-r border-[#2d2d2a] text-[13px] text-[#8b8b82] whitespace-nowrap">
+          <iconify-icon icon="lucide:file-json" class="text-yellow-400"></iconify-icon>
+          register.config
+        </div>
+      </div>
+
+      <!-- Breadcrumbs -->
+      <div class="h-7 flex items-center px-6 bg-[#0a0a0a] text-[11px] text-[#8b8b82] gap-2 border-b border-[#1a1a17]">
+        <iconify-icon icon="lucide:folder-open" class="text-xs"></iconify-icon>
+        <span>hackathon-id-2026</span>
+        <iconify-icon icon="lucide:chevron-right" class="text-[10px]"></iconify-icon>
+        <span>src</span>
+        <iconify-icon icon="lucide:chevron-right" class="text-[10px]"></iconify-icon>
+        <span class="text-white">README.sh</span>
+      </div>
+
+      <!-- Content Sections Container -->
+      <div class="p-6 md:p-12 space-y-32">
 
           <!-- Hero Section: README.sh (Terminal Style) -->
           <section id="hero" class="animate-reveal">
@@ -524,45 +613,7 @@
             </div>
           </div>
         </footer>
-      </main>
-
-      <!-- Side Panel: Status Bar Style -->
-      <div class="hidden xl:flex flex-col w-12 bg-[#1a1a17] border-l border-[#2d2d2a] items-center py-4 gap-6 text-[#8b8b82]">
-        <iconify-icon icon="lucide:search" class="text-xl hover:text-white cursor-pointer"></iconify-icon>
-        <iconify-icon icon="lucide:git-branch" class="text-xl hover:text-white cursor-pointer"></iconify-icon>
-        <iconify-icon icon="lucide:box" class="text-xl hover:text-white cursor-pointer"></iconify-icon>
-        <iconify-icon icon="lucide:flask-conical" class="text-xl hover:text-white cursor-pointer"></iconify-icon>
-        <div class="mt-auto flex flex-col gap-6">
-          <iconify-icon icon="lucide:user-circle" class="text-xl hover:text-white cursor-pointer"></iconify-icon>
-          <iconify-icon icon="lucide:settings" class="text-xl hover:text-white cursor-pointer"></iconify-icon>
-        </div>
-      </div>
-    </div>
-
-    <!-- Status Bar (Footer) -->
-    <footer class="h-6 bg-[#f54e00] flex items-center justify-between px-3 text-[10px] font-bold text-white z-50">
-      <div class="flex items-center gap-4">
-        <div class="flex items-center gap-1">
-          <iconify-icon icon="lucide:git-branch"></iconify-icon>
-          <span>main*</span>
-        </div>
-        <div class="flex items-center gap-1">
-          <iconify-icon icon="lucide:refresh-cw" class="animate-spin"></iconify-icon>
-          <span>Syncing...</span>
-        </div>
-      </div>
-      <div class="flex items-center gap-4">
-        <span>Ln 1, Col 1</span>
-        <span>UTF-8</span>
-        <div class="flex items-center gap-1">
-          <iconify-icon icon="lucide:check-circle"></iconify-icon>
-          <span>Prettier</span>
-        </div>
-        <div class="flex items-center gap-1">
-          <iconify-icon icon="lucide:bell"></iconify-icon>
-        </div>
-      </div>
-    </footer>
-  </div>
+    </div><!-- /md:ml-64 xl:mr-12 -->
+  </div><!-- /content-layer -->
 </body>
 </html>
